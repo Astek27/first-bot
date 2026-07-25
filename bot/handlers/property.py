@@ -3,6 +3,7 @@ from aiogram.filters import StateFilter
 from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery, Message
 
+from bot.config import Settings
 from bot.handlers.generate import run_generation
 from bot.keyboards import (
     RENOVATION_OPTIONS,
@@ -71,13 +72,13 @@ async def on_renovation(callback: CallbackQuery, state: FSMContext) -> None:
 
 
 @router.message(StateFilter(ListingForm.waiting_wishes), F.text)
-async def on_wishes_text(message: Message, state: FSMContext) -> None:
+async def on_wishes_text(message: Message, state: FSMContext, settings: Settings) -> None:
     await state.update_data(wishes=message.text)
-    await run_generation(message, state)
+    await run_generation(message, state, settings)
 
 
 @router.callback_query(StateFilter(ListingForm.waiting_wishes), F.data == "wishes:skip")
-async def on_wishes_skip(callback: CallbackQuery, state: FSMContext) -> None:
+async def on_wishes_skip(callback: CallbackQuery, state: FSMContext, settings: Settings) -> None:
     await callback.answer()
     await state.update_data(wishes=None)
-    await run_generation(callback.message, state)
+    await run_generation(callback.message, state, settings)

@@ -1,5 +1,12 @@
-from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
+from aiogram.types import (
+    InlineKeyboardButton,
+    InlineKeyboardMarkup,
+    KeyboardButton,
+    ReplyKeyboardMarkup,
+)
 from aiogram.utils.keyboard import InlineKeyboardBuilder
+
+START_BUTTON_TEXT = "🏠 Начать"
 
 TYPE_OPTIONS = [
     ("Квартира", "apartment"),
@@ -28,11 +35,11 @@ RESULT_OPTIONS = [
 ]
 
 
-def _build(prefix: str, options: list[tuple[str, str]]) -> InlineKeyboardMarkup:
+def _build(prefix: str, options: list[tuple[str, str]], per_row: int = 2) -> InlineKeyboardMarkup:
     builder = InlineKeyboardBuilder()
     for label, value in options:
         builder.add(InlineKeyboardButton(text=label, callback_data=f"{prefix}:{value}"))
-    builder.adjust(2)
+    builder.adjust(per_row)
     return builder.as_markup()
 
 
@@ -45,7 +52,7 @@ def rooms_keyboard() -> InlineKeyboardMarkup:
 
 
 def renovation_keyboard() -> InlineKeyboardMarkup:
-    return _build("renovation", RENOVATION_OPTIONS)
+    return _build("renovation", RENOVATION_OPTIONS, per_row=1)
 
 
 def wishes_keyboard() -> InlineKeyboardMarkup:
@@ -55,10 +62,17 @@ def wishes_keyboard() -> InlineKeyboardMarkup:
 
 
 def result_keyboard() -> InlineKeyboardMarkup:
-    return _build("result", RESULT_OPTIONS)
+    return _build("result", RESULT_OPTIONS, per_row=1)
 
 
-def retry_keyboard() -> InlineKeyboardMarkup:
+def retry_keyboard(callback_data: str = "retry:study_area") -> InlineKeyboardMarkup:
     builder = InlineKeyboardBuilder()
-    builder.add(InlineKeyboardButton(text="Повторить", callback_data="retry:study_area"))
+    builder.add(InlineKeyboardButton(text="Повторить", callback_data=callback_data))
     return builder.as_markup()
+
+
+def start_reply_keyboard() -> ReplyKeyboardMarkup:
+    return ReplyKeyboardMarkup(
+        keyboard=[[KeyboardButton(text=START_BUTTON_TEXT)]],
+        resize_keyboard=True,
+    )
