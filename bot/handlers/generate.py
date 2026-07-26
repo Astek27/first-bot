@@ -14,10 +14,15 @@ router = Router()
 
 
 async def run_generation(message: Message, state: FSMContext, settings: Settings) -> None:
+    data = await state.get_data()
+    if "address" not in data:
+        await message.answer("Анкета сброшена (бот перезапускался). Начнём заново.")
+        await start_flow(message, state)
+        return
+
     await state.set_state(ListingForm.generating)
     await message.answer("Генерирую текст объявления...")
 
-    data = await state.get_data()
     listing_input = ListingInput(
         address=data["address"],
         poi=data["poi"],

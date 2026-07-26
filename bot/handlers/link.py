@@ -46,6 +46,10 @@ async def on_link(message: Message, state: FSMContext, settings: Settings) -> No
 async def on_retry(callback: CallbackQuery, state: FSMContext, settings: Settings) -> None:
     await callback.answer()
     data = await state.get_data()
+    if "link" not in data:
+        await callback.message.answer("Анкета сброшена (бот перезапускался). Начнём заново.")
+        await start_flow(callback.message, state)
+        return
     await study_area(callback.message, state, data["link"], settings)
 
 
