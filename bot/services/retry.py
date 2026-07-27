@@ -16,7 +16,9 @@ async def with_retries(call: Callable[[], Awaitable[T]], *, attempts: int = 3, d
             return await call()
         except Exception as exc:
             last_error = exc
-            logger.warning("attempt %s/%s failed: %s", attempt, attempts, exc)
+            # str() on TimeoutError is empty — always log the type too, or the
+            # line reads "attempt 2/4 failed:" and tells you nothing.
+            logger.warning("attempt %s/%s failed: %s: %s", attempt, attempts, type(exc).__name__, exc)
             if attempt < attempts:
                 await asyncio.sleep(delay_s)
     raise ExternalServiceError(str(last_error)) from last_error
