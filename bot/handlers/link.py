@@ -7,7 +7,7 @@ from bot.config import Settings
 from bot.keyboards import START_BUTTON_TEXT, retry_keyboard, start_reply_keyboard, type_keyboard
 from bot.services.errors import ExternalServiceError
 from bot.services.geocoder import resolve_address
-from bot.services.maps_link import resolve_link
+from bot.services.maps_link import extract_url, resolve_link
 from bot.services.poi import find_poi
 from bot.states import ListingForm
 
@@ -38,8 +38,14 @@ async def start_flow(message: Message, state: FSMContext) -> None:
 
 @router.message(StateFilter(ListingForm.waiting_link), F.text)
 async def on_link(message: Message, state: FSMContext, settings: Settings) -> None:
-    await state.update_data(link=message.text)
-    await study_area(message, state, message.text, settings)
+    url = extract_url(message.text)
+    if url is None:
+        await message.answer(
+            "Не вижу ссылки в сообщении. Пришлите ссылку на Яндекс.Карты с адресом объекта."
+        )
+        return
+    await state.update_data(link=url)
+    await study_area(message, state, url, settings)
 
 
 @router.callback_query(F.data == "retry:study_area")
