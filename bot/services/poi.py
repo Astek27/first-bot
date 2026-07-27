@@ -10,12 +10,17 @@ from bot.services.retry import with_retries
 
 # Public Overpass instances go 504 under load independently of each other, so a
 # retry is only worth anything if it lands on a different host — one attempt each.
+# VK Maps first: it is hosted in Russia (lowest latency from the VPS), documents
+# no request limits, and was the only one answering in every probe so far.
+# overpass.kumi.systems is deliberately absent — it is the same operator as
+# private.coffee and the two fail together, so it buys no redundancy.
 OVERPASS_MIRRORS = (
-    "https://overpass-api.de/api/interpreter",
-    "https://overpass.kumi.systems/api/interpreter",
-    "https://overpass.private.coffee/api/interpreter",
     "https://maps.mail.ru/osm/tools/overpass/api/interpreter",
+    "https://overpass-api.de/api/interpreter",
+    "https://overpass.private.coffee/api/interpreter",
 )
+# FOSSGIS asks every client of overpass-api.de to identify itself.
+USER_AGENT = "first-bot/1.0 (telegram listing bot for realtors)"
 RADIUS_M = 800
 
 # Resolves the open question from CLAUDE.md: metro = subway station nodes,
@@ -81,7 +86,7 @@ async def find_poi(coords: Coordinates) -> list[PoiFact]:
     async def attempt() -> list[PoiFact]:
         url = next(mirrors)
         host = urlparse(url).netloc
-        async with aiohttp.ClientSession() as session:
+        async with aiohttp.ClientSession(headers={"User-Agent": USER_AGENT}) as session:
             async with session.post(
                 url, data={"data": query}, timeout=aiohttp.ClientTimeout(total=8)
             ) as resp:
